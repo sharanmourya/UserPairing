@@ -26,3 +26,5 @@ Set the number of users, **K** and the dataset path name in **k_clique_user_pair
 
 Now run the file **k_clique_user_pairing.py** to begin training and evaluation...
 
+#### Acknowledgement
+This repository is built upon the the [Erdos Goes Neural Pipeline open source code](https://github.com/Stalence/erdos_neu). Thanks Stalence for the amazing work.
