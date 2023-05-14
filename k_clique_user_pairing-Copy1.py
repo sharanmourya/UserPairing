@@ -1,17 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-#cd
-get_ipython().run_line_magic('config', 'Completer.use_jedi = False')
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-
-
-# In[9]:
-
 
 #imports
 import torch
@@ -82,11 +68,15 @@ import matplotlib.pyplot as plt
 from models import clique_MPNN
 from torch_geometric.nn.norm.graph_size_norm import GraphSizeNorm
 from modules_and_utils import decode_clique_final, decode_clique_final_speed
+import numpy as np
+import scipy.io as sio 
+from matplotlib import pyplot as plt
+from torch_scatter import scatter_min, scatter_max, scatter_add, scatter_mean
 
-
-# In[10]:
-
-
+############################################################################################################################################
+#                                                          DATASET DEFINITION
+############################################################################################################################################
+print("Setting up data.......")
 K = 40 # no of users
 with open("F:\\channel_40_1", "rb") as fp:
     dataset = pickle.load(fp)
@@ -113,17 +103,17 @@ batch_size = 1
 train_loader = DataLoader(traindata, batch_size, shuffle=False)
 for data in testdata:
     print(data)
+print("Finished setting up data!")  
 
+############################################################################################################################################
+#                                                          DEFINE GNN
+############################################################################################################################################
 
 #set up random seeds 
 torch.manual_seed(1)
 np.random.seed(2)   
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
-
-
-# In[11]:
-
 
 #number of propagation layers
 numlayers = 8
@@ -144,10 +134,10 @@ net.to(device).reset_parameters()
 optimizer = Adam(net.parameters(), lr=0.001, weight_decay=0.00)
 
 
-# In[12]:
-
-
-
+############################################################################################################################################
+#                                                        TRAIN GNN
+############################################################################################################################################
+print("Starting Training....")
 b_sizes = [50]
 l_rates = [0.001]
 depths = [8]
@@ -242,11 +232,14 @@ for batch_size, learning_rate, numlayers, penalty_coeff, r_seed, hidden_1 in pro
                 if "sequence" in val[1]:
                     val[0] = val[0]/(len(train_loader.dataset)/batch_size)
             del data_prime
+print("Training done!")
 
 
-# In[13]:
+############################################################################################################################################
+#                                                          EVALUATE GNN
+############################################################################################################################################
 
-
+print("Starting inference....")
 tbatch_size = batch_size
 num_data_points = num_testpoints
 
@@ -338,18 +331,14 @@ t_1 = time.time()
 total_time = t_1 - t_start
 print("Average time per graph: ", total_time/(len(test_data)))
 
-# print(maxset)
-# print(bestset)
-# print(gnn_sets)
+print("Inference done!")
 
 
-# In[14]:
+############################################################################################################################################
+#                                                          K-Means User Grouping
+############################################################################################################################################
 
-
-import numpy as np
-import scipy.io as sio 
-from matplotlib import pyplot as plt
-from torch_scatter import scatter_min, scatter_max, scatter_add, scatter_mean
+print("Performing k-means user grouping")
 N = 100;
 number = K;
 k = bound
@@ -461,11 +450,14 @@ plt.xlabel('X', fontsize=14)
 plt.ylabel('Y', fontsize=14)
 # plt.scatter([xm1 xm2 xm3],[ym1 ym2 ym3], c=[5 5 5])
 plt.show()
+print("Finished k-means user grouping!")
 
 
-# In[15]:
+############################################################################################################################################
+#                                                             k-SUS
+############################################################################################################################################
 
-
+print("Starting semi-orthogonal user scheduling....")
 # print(np.shape(users_ind_kmeans))
 print(K)
 users = gnn_sets[str(to)]['0']
@@ -480,10 +472,6 @@ plt.title('K-clique user pairing', fontsize=11)
 plt.xlabel('X', fontsize=14)
 plt.ylabel('Y', fontsize=14)
 plt.show()
-
-
-# In[16]:
-
 
 alpha = 0.01
 users_ind_sus = np.zeros([to,k])
@@ -522,12 +510,13 @@ for p in range(801,801+to):
                 users_ind_sus[p-801][idx] = P[idx]
         
 print(users_ind_sus)
+print("Finished semi-orthogonal user scheduling!")
 
 
-# In[17]:
-
-
-import numpy as np
+############################################################################################################################################
+#                                                       Waterfilling and Sum rate calculations
+############################################################################################################################################
+print("Starting sum rate calculations....")
 from scipy.linalg import svd
 
 def waterfilling(H,P):
@@ -552,13 +541,6 @@ def waterfilling(H,P):
         else: # Less than power limit => increase the lower bound
             alpha_high = alpha
     return p
-
-
-# In[20]:
-
-
-import scipy.io as sio 
-import matplotlib.pyplot as plt
 
 def sumrate(ebn,num):
     snr = 10**(ebn/10)
@@ -659,13 +641,12 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
+print("Finished sumrate calculations!")
 
-# print(sr_clique)
-# print(dpc)
-
-
-# In[242]:
-
+############################################################################################################################################
+#                                                          OTHER PLOTS
+############################################################################################################################################
+# Values collected from different runs of the GNN with the respective values of K's
 
 clique = [6.52799823, 6.51964084, 6.62973278, 6.63232852, 6.62970638, 6.62598411, 6.62950228, 6.62635731, 6.62720659, 6.62298049]
 kmeans = [5.80317788, 5.73147345, 5.63851779, 5.68550135, 5.68521737, 5.53902121, 5.62057428, 5.55284441, 5.50474545, 5.7004235 ]
@@ -680,9 +661,6 @@ plt.ylabel("sum rate (bps/Hz)")
 plt.legend()
 plt.grid(True)
 plt.show()
-
-
-# In[243]:
 
 
 flops_clique = [39.98, 79.96, 119.9, 159.9, 199.9, 239.8, 279.8, 319.8, 359.8, 399.8]
@@ -714,9 +692,6 @@ plt.grid(True)
 plt.show()
 
 
-# In[14]:
-
-
 sr = [6.25853899, 6.19661747, 5.52504612, 5.72445559, 5.78752572, 5.63617305, 5.77002804, 5.80513293, 5.77119982, 5.75396522]
 sm = [6.25082681, 6.20439943, 6.63113   , 6.63203779, 6.62999324, 6.62615638, 6.62810202, 6.62924805, 6.62601823, 6.62692901]
 users = list(range(10, 101, 10))
@@ -728,10 +703,5 @@ plt.ylabel("sumrate")
 # plt.legend()
 # plt.grid(True)
 plt.show()
-
-
-# In[ ]:
-
-
 
 
