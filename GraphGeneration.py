@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 # Graph data generation in accordance with PyGeometric
 
@@ -48,8 +43,6 @@ for iter in range(1000): # 1000 channel matrices
 with open("F:\\channel_100_1", "wb") as fp:    # naming convention: channel_{no of users}_{alpha}
     pickle.dump(dataset, fp)
 
-
-# In[ ]:
 
 
 
