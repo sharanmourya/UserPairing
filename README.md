@@ -22,7 +22,7 @@ Run the file **ChannelGeneration.m** with the require number of users **K** to g
 Note: Make sure to edit the path names in both the files to store the dataset at a convenient location.
 
 #### 2) Training the GNN
-Set the number of users, "K" and the dataset path name in **k_clique_user_pairing.py** as defined in the previous step.
+Set the number of users, **K** and the dataset path name in **k_clique_user_pairing.py** as defined in the previous step.
 
 Now run the file **k_clique_user_pairing.py** to begin training and evaluation...
 
