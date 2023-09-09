@@ -3,7 +3,7 @@
 ## Introduction
 This repository holds the pytorch implementation of the original models described in the paper
 
-Sharan Mourya, Pavan Reddy, Sai Dhiraj Amuru, "Graph Neural Networks-Based User Pairing in Wireless Communication Systems"
+Sharan Mourya, Pavan Reddy, Sai Dhiraj Amuru, "Spectral Temporal Graph Neural Network for massive MIMO CSI Prediction"
 
 ## Requirements
 - Python >= 3.7
